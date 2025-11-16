@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Semi Jóias</title>
+    <style>
+        body { font-family: Arial; margin: 0; padding: 0; background: #f4f4f4; }
+        header { background: #8e44ad; color: #fff; padding: 15px; text-align: center; }
+        nav { background: #732d91; padding: 10px; text-align: center; }
+        nav button { margin: 5px; padding: 10px 15px; border: none; background: #fff; cursor: pointer; border-radius: 5px; }
+        section { display: none; padding: 20px; }
+        .ativo { display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background: #ddd; }
+        input, select { padding: 6px; width: 100%; margin: 5px 0; }
+        .btn { background: #8e44ad; color: white; padding: 10px; border: none; margin-top: 10px; cursor: pointer; border-radius: 5px; width: 100%; }
+        .btn:hover { background: #732d91; }
+        .linha { display: flex; gap: 10px; }
+        .linha div { flex: 1; }
+        .export-btn { background: #2ecc71; }
+        .import-btn { background: #3498db; }
+        .filter-box { background: #fff; padding: 10px; border-radius: 8px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Sistema de Semi Jóias</h1>
+</header>
+
+<nav>
+    <button onclick="mostrar('estoque')">Estoque</button>
+    <button onclick="mostrar('vendas')">Vendas</button>
+    <button onclick="mostrar('despesas')">Despesas</button>
+</nav>
+
+<!-- ESTOQUE -->
+<section id="estoque" class="ativo">
+    <h2>Cadastrar Produto</h2>
+
+    <div class="linha">
+        <div><input id="nomeProd" placeholder="Nome do Produto"></div>
+        <div><input id="custoProd" type="number" placeholder="Preço de Custo"></div>
+        <div><input id="vendaProd" type="number" placeholder="Preço de Venda Padrão"></div>
+        <div><input id="qtdProd" type="number" placeholder="Quantidade"></div>
+    </div>
+
+    <button class="btn" onclick="addEstoque()">Cadastrar</button>
+
+    <h3>Estoque Atual</h3>
+    <table id="tabelaEstoque">
+        <tr><th>Produto</th><th>Custo</th><th>Venda</th><th>Qtd</th></tr>
+    </table>
+</section>
+
+<!-- VENDAS -->
+<section id="vendas">
+    <h2>Registrar Venda</h2>
+
+    <div class="linha">
+        <div><input id="vendaProduto" placeholder="Produto"></div>
+        <div><input id="vendaQtd" type="number" placeholder="Quantidade Vendida"></div>
+        <div><input id="vendaPreco" type="number" placeholder="Preço de Venda Real"></div>
+        <div><input id="vendaVendedor" placeholder="Vendedor"></div>
+    </div>
+
+    <button class="btn" onclick="addVenda()">Registrar Venda</button>
+
+    <div class="filter-box">
+        <h3>Filtrar Vendas</h3>
+        <div class="linha">
+            <div><label>Data Inicial</label><input type="date" id="vendaDataIni"></div>
+            <div><label>Data Final</label><input type="date" id="vendaDataFim"></div>
+            <div><label>Vendedor</label><input id="vendaFiltroVend" placeholder="Vendedor"></div>
+        </div>
+        <button class="btn" onclick="filtrarVendas()">Filtrar</button>
+        <button class="btn" onclick="mostrarTodasVendas()">Mostrar Tudo</button>
+    </div>
+
+    <button class="btn export-btn" onclick="exportarCSV('vendas')">Exportar Vendas</button>
+    <button class="btn import-btn" onclick="document.getElementById('importVendas').click()">Importar Vendas</button>
+    <input type="file" id="importVendas" accept=".csv" style="display:none" onchange="importarCSV(event, 'vendas')">
+
+    <h3>Histórico de Vendas</h3>
+    <table id="tabelaVendas">
+        <tr><th>Produto</th><th>Qtd</th><th>Preço</th><th>Vendedor</th><th>Data</th></tr>
+    </table>
+</section>
+
+<!-- DESPESAS -->
+<section id="despesas">
+    <h2>Registrar Despesa</h2>
+
+    <div class="linha">
+        <div><input id="descDesp" placeholder="Descrição da Despesa"></div>
+        <div><input id="valorDesp" type="number" placeholder="Valor"></div>
+    </div>
+
+    <button class="btn" onclick="addDespesa()">Registrar</button>
+
+    <div class="filter-box">
+        <h3>Filtrar Despesas</h3>
+        <div class="linha">
+            <div><label>Data Inicial</label><input type="date" id="despDataIni"></div>
+            <div><label>Data Final</label><input type="date" id="despDataFim"></div>
+        </div>
+
+        <button class="btn" onclick="filtrarDespesas()">Filtrar</button>
+        <button class="btn" onclick="mostrarTodasDespesas()">Mostrar Tudo</button>
+    </div>
+
+    <button class="btn export-btn" onclick="exportarCSV('despesas')">Exportar Despesas</button>
+    <button class="btn import-btn" onclick="document.getElementById('importDespesas').click()">Importar Despesas</button>
+    <input type="file" id="importDespesas" accept=".csv" style="display:none" onchange="importarCSV(event, 'despesas')">
+
+    <h3>Histórico de Despesas</h3>
+    <table id="tabelaDespesas">
+        <tr><th>Descrição</th><th>Valor</th><th>Data</th></tr>
+    </table>
+</section>
+
+<script>
+function mostrar(tela) {
+    document.querySelectorAll("section").forEach(sec => sec.classList.remove("ativo"));
+    document.getElementById(tela).classList.add("ativo");
+}
+
+/* ------------------------- ESTOQUE ---------------------------- */
+function addEstoque() {
+    let nome = nomeProd.value;
+    let custo = custoProd.value;
+    let venda = vendaProd.value;
+    let qtd = qtdProd.value;
+
+    if (!nome || !custo || !venda || !qtd) return alert("Preencha todos os campos!");
+
+    let tabela = tabelaEstoque.insertRow();
+    tabela.insertCell(0).innerText = nome;
+    tabela.insertCell(1).innerText = custo;
+    tabela.insertCell(2).innerText = venda;
+    tabela.insertCell(3).innerText = qtd;
+
+    nomeProd.value = custoProd.value = vendaProd.value = qtdProd.value = "";
+}
+
+/* ------------------------- VENDAS ---------------------------- */
+let vendasBackup = [];
+
+function addVenda() {
+    let prod = vendaProduto.value;
+    let qtd = vendaQtd.value;
+    let preco = vendaPreco.value;
+    let vend = vendaVendedor.value;
+
+    if (!prod || !qtd || !preco || !vend) return alert("Preencha todos os campos!");
+
+    let data = new Date().toISOString().split("T")[0];
+
+    vendasBackup.push([prod, qtd, preco, vend, data]);
+
+    atualizarTabelaVendas(vendasBackup);
+
+    vendaProduto.value = vendaQtd.value = vendaPreco.value = vendaVendedor.value = "";
+}
+
+function atualizarTabelaVendas(lista) {
+    tabelaVendas.innerHTML = "<tr><th>Produto</th><th>Qtd</th><th>Preço</th><th>Vendedor</th><th>Data</th></tr>";
+    lista.forEach(linha => {
+        let row = tabelaVendas.insertRow();
+        linha.forEach(col => row.insertCell().innerText = col);
+    });
+}
+
+function filtrarVendas() {
+    let ini = vendaDataIni.value;
+    let fim = vendaDataFim.value;
+    let vend = vendaFiltroVend.value.toLowerCase();
+
+    let filtrado = vendasBackup.filter(l => {
+        let data = l[4];
+        let vendedor = l[3].toLowerCase();
+
+        let okData = true;
+        if (ini && data < ini) okData = false;
+        if (fim && data > fim) okData = false;
+
+        let okVend = !vend || vendedor.includes(vend);
+
+        return okData && okVend;
+    });
+
+    atualizarTabelaVendas(filtrado);
+}
+
+function mostrarTodasVendas() {
+    atualizarTabelaVendas(vendasBackup);
+}
+
+/* ------------------------- DESPESAS ---------------------------- */
+let despesasBackup = [];
+
+function addDespesa() {
+    let desc = descDesp.value;
+    let val = valorDesp.value;
+
+    if (!desc || !val) return alert("Preencha todos os campos!");
+
+    let data = new Date().toISOString().split("T")[0];
+
+    despesasBackup.push([desc, val, data]);
+
+    atualizarTabelaDespesas(despesasBackup);
+
+    descDesp.value = valorDesp.value = "";
+}
+
+function atualizarTabelaDespesas(lista) {
+    tabelaDespesas.innerHTML = "<tr><th>Descrição</th><th>Valor</th><th>Data</th></tr>";
+    lista.forEach(linha => {
+        let row = tabelaDespesas.insertRow();
+        linha.forEach(col => row.insertCell().innerText = col);
+    });
+}
+
+function filtrarDespesas() {
+    let ini = despDataIni.value;
+    let fim = despDataFim.value;
+
+    let filtrado = despesasBackup.filter(l => {
+        let data = l[2];
+
+        let okData = true;
+        if (ini && data < ini) okData = false;
+        if (fim && data > fim) okData = false;
+
+        return okData;
+    });
+
+    atualizarTabelaDespesas(filtrado);
+}
+
+function mostrarTodasDespesas() {
+    atualizarTabelaDespesas(despesasBackup);
+}
+
+/* --------------------- EXPORTAÇÃO CSV -------------------------- */
+function exportarCSV(tipo) {
+    let dados = tipo === "vendas" ? vendasBackup : despesasBackup;
+    let csv = dados.map(l => l.join(",")).join("\n");
+
+    let blob = new Blob([csv], { type: "text/csv" });
+    let link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = tipo + ".csv";
+    link.click();
+}
+
+/* ---------------------- IMPORTAÇÃO CSV -------------------------- */
+function importarCSV(event, tipo) {
+    let file = event.target.files[0];
+    if (!file) return;
+
+    let reader = new FileReader();
+    reader.onload = function(e) {
+        let linhas = e.target.result.split("\n").filter(l => l.trim() !== "");
+        let dados = linhas.map(l => l.split(","));
+
+        if (tipo === "vendas") {
+            vendasBackup = dados;
+            atualizarTabelaVendas(vendasBackup);
+        } else {
+            despesasBackup = dados;
+            atualizarTabelaDespesas(despesasBackup);
+        }
+    };
+
+    reader.readAsText(file);
+}
+</script>
+
+</body>
+</html>
