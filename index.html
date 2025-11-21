@@ -3,305 +3,331 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Sistema Semi Jóias — com Backup Único</title>
-
-  <!-- Bootstrap CSS -->
+  <title>Sistema Semi Jóias — Multiusuário (Admin + Vendedores)</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-
   <style>
     body{background:#f5f7fb;font-family:Inter,Arial,Helvetica,sans-serif}
-    .container{max-width:1100px;margin-top:24px}
+    .container{max-width:1100px;margin-top:20px}
     .card{border-radius:10px}
     .small-input{height:38px;padding:6px}
     .muted{color:#6b7280}
-    .table-fixed tbody{height:220px;overflow:auto;display:block}
-    .table-fixed thead, .table-fixed tbody tr{display:table;width:100%;table-layout:fixed}
-    .table-fixed thead{width:100%}
     .badge-low{background:#fff3cd;color:#a35b00;padding:4px 8px;border-radius:8px}
     .badge-empty{background:#f8d7da;color:#842029;padding:4px 8px;border-radius:8px}
+    #loginBox{max-width:420px;margin:80px auto}
+    .hidden{display:none}
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2 class="mb-3 text-center">💎 Sistema de Estoque — Semi Jóias</h2>
-
-    <!-- Nav -->
-    <ul class="nav nav-tabs mb-3" id="mainTabs" role="tablist">
-      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#estoqueTab">Estoque</button></li>
-      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vendasTab">Vendas</button></li>
-      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#despesasTab">Despesas</button></li>
-      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#relTab">Relatórios</button></li>
-    </ul>
-
+  
+  <div class="container" id="app" style="display:none">    <h2 class="mb-3 text-center">💎 Sistema de Estoque — Semi Jóias</h2>
+    <div class="d-flex justify-content-between align-items-center mb-2">      <div>        Logado como: <strong id="currentUserLabel"></strong> <span id="roleLabel" class="muted"></span>      </div>      <div>        <button class="btn btn-outline-secondary btn-sm" id="btnLogout">Sair</button>      </div>    </div>
+    <ul class="nav nav-tabs mb-3" id="mainTabs" role="tablist">      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#estoqueTab">Estoque</button></li>      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#vendasTab">Vendas</button></li>      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#despesasTab">Despesas</button></li>      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#relTab">Relatórios</button></li>      <li class="nav-item" id="liUsers" style="display:none"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#usersTab" disabled>Usuários (API Pendente)</button></li>    </ul>
     <div class="tab-content">
-
-      <!-- ESTOQUE -->
-      <div class="tab-pane fade show active" id="estoqueTab">
-        <div class="card mb-3">
-          <div class="card-body">
-            <h5>Cadastrar / Editar Produto</h5>
-            <form id="formProduto" class="row g-2 align-items-end">
-              <input type="hidden" id="produtoId"/>
-              <div class="col-md-5">
-                <label class="form-label small">Nome</label>
-                <input id="produtoNome" class="form-control" required/>
-              </div>
-              <div class="col-md-2">
-                <label class="form-label small">Código</label>
-                <input id="produtoCodigo" class="form-control"/>
-              </div>
-              <div class="col-md-2">
-                <label class="form-label small">Quantidade</label>
-                <input id="produtoQtd" type="number" min="0" class="form-control small-input" value="1"/>
-              </div>
-              <div class="col-md-1">
-                <label class="form-label small">Min</label>
-                <input id="produtoMin" type="number" min="0" class="form-control small-input" value="0"/>
-              </div>
-              <div class="col-md-1">
-                <label class="form-label small">Custo</label>
-                <input id="produtoCusto" type="number" step="0.01" class="form-control small-input" value="0"/>
-              </div>
-              <div class="col-md-1">
-                <label class="form-label small">Preço</label>
-                <input id="produtoPreco" type="number" step="0.01" class="form-control small-input" value="0"/>
-              </div>
-
-              <div class="col-12 text-end mt-1">
-                <button class="btn btn-success btn-sm" type="submit">Salvar</button>
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="limparProdutoBtn">Limpar</button>
-                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="exportCSV('products')">Exportar CSV</button>
-              </div>
-            </form>
-          </div>
+      <div class="tab-pane fade show active" id="estoqueTab">        <div class="card mb-3">          <div class="card-body">            <h5>Cadastrar / Editar Produto</h5>            <form id="formProduto" class="row g-2 align-items-end">              <input type="hidden" id="produtoId"/>              <div class="col-md-4">                <label class="form-label small">Nome</label>                <input id="produtoNome" class="form-control" required/>              </div>              <div class="col-md-2">                <label class="form-label small">Código</label>                <input id="produtoCodigo" class="form-control"/>              </div>              <div class="col-md-1">                <label class="form-label small">Qtd</label>                <input id="produtoQtd" type="number" min="0" class="form-control small-input" value="1"/>              </div>              <div class="col-md-1">                <label class="form-label small">Min</label>                <input id="produtoMin" type="number" min="0" class="form-control small-input" value="0"/>              </div>              <div class="col-md-2">                <label class="form-label small">Custo</label>                <input id="produtoCusto" type="number" step="0.01" class="form-control small-input" value="0"/>              </div>              <div class="col-md-1">                <label class="form-label small">Preço</label>                <input id="produtoPreco" type="number" step="0.01" class="form-control small-input" value="0"/>              </div>              <div class="col-md-1">                <label class="form-label small">Exportar?</label><br/>                <input type="checkbox" id="produtoExport" title="Exportar para vendedores">              </div>
+              <div class="col-12 text-end mt-1">                <button class="btn btn-success btn-sm" type="submit">Salvar</button>                <button class="btn btn-outline-secondary btn-sm" type="button" id="limparProdutoBtn">Limpar</button>                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="exportCSV('products')">Exportar CSV (produtos marcados)</button>              </div>            </form>          </div>        </div>
+        <div class="card">          <div class="card-body">            <div class="d-flex justify-content-between align-items-center mb-2">              <div class="d-flex gap-2">                <input id="searchProduct" class="form-control form-control-sm" placeholder="Buscar por nome ou código" style="min-width:280px"/>                <button class="btn btn-sm btn-outline-secondary" onclick="renderProducts()">Buscar</button>              </div>              <div class="muted">Dados salvos no servidor (API)</div>            </div>
+            <div style="overflow:auto;max-height:360px">              <table class="table table-sm table-striped">                <thead class="table-light"><tr><th>Nome</th><th>Cód</th><th>Qtd</th><th>Min</th><th>Preço</th><th id="thCusto">Custo</th><th></th></tr></thead>                <tbody id="productsTbody"></tbody>              </table>            </div>          </div>        </div>      </div>
+      <div class="tab-pane fade" id="vendasTab">        <div class="card mb-3">          <div class="card-body">            <h5>Registrar Venda</h5>            <form id="formVenda" class="row g-2 align-items-end">              <div class="col-md-4">                <label class="form-label small">Produto</label>                <select id="saleProduct" class="form-select"></select>              </div>              <div class="col-md-2">                <label class="form-label small">Preço (sugerido — editável)</label>                <input id="salePrice" type="number" step="0.01" class="form-control small-input"/>              </div>              <div class="col-md-1">                <label class="form-label small">Qtd</label>                <input id="saleQty" type="number" min="1" class="form-control small-input" value="1"/>              </div>              <div class="col-md-2">                <label class="form-label small">Vendedor</label>                <input id="saleSeller" class="form-control" disabled/>              </div>              <div class="col-md-1">                <label class="form-label small">Comissão %</label>                <input id="saleCommissionPct" type="number" step="0.1" class="form-control small-input" value="10"/>              </div>              <div class="col-md-1 text-end">                <button class="btn btn-primary btn-sm" type="submit">Registrar</button>              </div>              <div class="col-md-1 text-end">                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="exportCSV('sales')">Exportar CSV</button>              </div>            </form>          </div>        </div>
+        <div class="card mb-3">          <div class="card-body">            <h6>Filtros</h6>            <div class="row g-2 align-items-end">              <div class="col-md-3"><label class="form-label small">Data início</label><input id="saleFilterStart" type="date" class="form-control"/></div>              <div class="col-md-3"><label class="form-label small">Data fim</label><input id="saleFilterEnd" type="date" class="form-control"/></div>              <div class="col-md-3"><label class="form-label small">Vendedor (ADM pode filtrar)</label><input id="saleFilterSeller" class="form-control" placeholder="Deixar em branco para todos"/></div>              <div class="col-md-3 text-end"><button class="btn btn-secondary btn-sm" onclick="filterSales()">Filtrar</button> <button class="btn btn-outline-secondary btn-sm" onclick="showAllSales()">Mostrar tudo</button></div>            </div>          </div>        </div>
+        <div class="card">          <div class="card-body" style="max-height:320px;overflow:auto">            <table class="table table-sm table-striped">              <thead class="table-light"><tr><th>Data</th><th>Produto</th><th>Qtd</th><th>Preço</th><th>Total</th><th>Vendedor</th><th>Comissão</th></tr></thead>              <tbody id="salesTbody"></tbody>            </table>          </div>        </div>      </div>
+      <div class="tab-pane fade" id="despesasTab">        <div class="card mb-3">          <div class="card-body">            <h5>Registrar Despesa</h5>            <form id="formDespesa" class="row g-2 align-items-end">              <div class="col-md-6">                <label class="form-label small">Descrição</label>                <input id="expenseDesc" class="form-control"/>              </div>              <div class="col-md-2">                <label class="form-label small">Valor (R$)</label>                <input id="expenseValue" type="number" step="0.01" class="form-control small-input"/>              </div>              <div class="col-md-2">                <label class="form-label small">Data</label>                <input id="expenseDate" type="date" class="form-control"/>              </div>              <div class="col-md-2 text-end">                <button class="btn btn-success btn-sm" type="submit">Adicionar</button>                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="exportCSV('expenses')">Exportar CSV</button>              </div>            </form>          </div>        </div>
+        <div class="card mb-3">          <div class="card-body">            <h6>Filtros de Despesas</h6>            <div class="row g-2 align-items-end">              <div class="col-md-4"><label class="form-label small">Data início</label><input id="expenseFilterStart" type="date" class="form-control"/></div>              <div class="col-md-4"><label class="form-label small">Data fim</label><input id="expenseFilterEnd" type="date" class="form-control"/></div>              <div class="col-md-4 text-end"><button class="btn btn-secondary btn-sm" onclick="filterExpenses()">Filtrar</button> <button class="btn btn-outline-secondary btn-sm" onclick="showAllExpenses()">Mostrar tudo</button></div>            </div>          </div>        </div>
+        <div class="card">          <div class="card-body" style="max-height:320px;overflow:auto">            <table class="table table-sm table-striped">              <thead class="table-light"><tr><th>Data</th><th>Descrição</th><th>Valor</th></tr></thead>              <tbody id="expensesTbody"></tbody>            </table>          </div>        </div>      </div>
+      <div class="tab-pane fade" id="relTab">        <div class="card mb-3">          <div class="card-body">            <h5>Relatório Rápido</h5>            <p><strong>Valor em estoque:</strong> R$ <span id="reportStock">0.00</span></p>            <p><strong>Vendas (total):</strong> R$ <span id="reportSales">0.00</span></p>            <p><strong>Despesas (total):</strong> R$ <span id="reportExpenses">0.00</span></p>            <p><strong>Comissões (total):</strong> R$ <span id="reportCommissions">0.00</span></p>            <hr/>            <p><strong>Lucro líquido:</strong> R$ <span id="reportNet">0.00</span></p>          </div>        </div>
+        <div class="card mb-3">          <div class="card-body">            <h5>Backup / Restaurar (Arquivo Único JSON)</h5>            <p class="muted">Os dados agora são salvos automaticamente no servidor. Esta seção de backup/restore foi desativada.</p>            </div>        </div>      </div>
+      <div class="tab-pane fade" id="usersTab">        <div class="card mb-3">          <div class="card-body">            <h5>Gerenciar Usuários</h5>            <p class="text-danger"><b>Funcionalidade desativada.</b></p>            <p class="muted">Sua API (back-end) ainda não possui as rotas necessárias para Listar, Criar ou Deletar usuários (ex: /api/users). Apenas o /api/login está disponível.            </p>            </div>        </div>      </div>
+    </div> </div> <div id="loginBox" class="card">
+    <div class="card-body">
+      <h4 class="card-title text-center">Acesse o Sistema</h4>
+      <form id="loginForm">
+        <div class="mb-2"><label class="form-label small">Usuário</label><input id="loginUser" class="form-control" required value="admin"></div>
+        <div class="mb-2"><label class="form-label small">Senha</label><input id="loginPass" type="password" class="form-control" required value="admin123"></div>
+        <div class="d-grid gap-2">
+          <button class="btn btn-primary" type="submit">Entrar</button>
+          <button class="btn btn-link" type="button" id="btnForgot" disabled>Esqueci a senha</button>
         </div>
+      </form>
+      <div id="loginMessage" class="text-danger mt-2"></div>      <small class="muted">Conta admin inicial: <strong>admin</strong> / senha inicial: <strong>admin123</strong>.</small>
+    </div>
+  </div>
 
-        <div class="card">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <div class="d-flex gap-2">
-                <input id="searchProduct" class="form-control form-control-sm" placeholder="Buscar por nome ou código" style="min-width:280px"/>
-                <button class="btn btn-sm btn-outline-secondary" onclick="renderProducts()">Buscar</button>
-              </div>
-              <div class="muted">Dados salvos no navegador (localStorage)</div>
-            </div>
-
-            <div style="overflow:auto;max-height:360px">
-              <table class="table table-sm table-striped">
-                <thead class="table-light"><tr><th>Nome</th><th>Cód</th><th>Qtd</th><th>Min</th><th>Preço</th><th>Custo</th><th></th></tr></thead>
-                <tbody id="productsTbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- VENDAS -->
-      <div class="tab-pane fade" id="vendasTab">
-        <div class="card mb-3">
-          <div class="card-body">
-            <h5>Registrar Venda</h5>
-            <form id="formVenda" class="row g-2 align-items-end">
-              <div class="col-md-4">
-                <label class="form-label small">Produto</label>
-                <select id="saleProduct" class="form-select"></select>
-              </div>
-              <div class="col-md-2">
-                <label class="form-label small">Preço (sugerido — editável)</label>
-                <input id="salePrice" type="number" step="0.01" class="form-control small-input"/>
-              </div>
-              <div class="col-md-1">
-                <label class="form-label small">Qtd</label>
-                <input id="saleQty" type="number" min="1" class="form-control small-input" value="1"/>
-              </div>
-              <div class="col-md-2">
-                <label class="form-label small">Vendedor</label>
-                <input id="saleSeller" class="form-control"/>
-              </div>
-              <div class="col-md-1">
-                <label class="form-label small">Comissão %</label>
-                <input id="saleCommissionPct" type="number" step="0.1" class="form-control small-input" value="10"/>
-              </div>
-              <div class="col-md-2 text-end">
-                <button class="btn btn-primary btn-sm" type="submit">Registrar Venda</button>
-                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="exportCSV('sales')">Exportar CSV</button>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <div class="card mb-3">
-          <div class="card-body">
-            <h6>Filtros</h6>
-            <div class="row g-2 align-items-end">
-              <div class="col-md-3"><label class="form-label small">Data início</label><input id="saleFilterStart" type="date" class="form-control"/></div>
-              <div class="col-md-3"><label class="form-label small">Data fim</label><input id="saleFilterEnd" type="date" class="form-control"/></div>
-              <div class="col-md-3"><label class="form-label small">Vendedor</label><input id="saleFilterSeller" class="form-control" placeholder="Deixar em branco para todos"/></div>
-              <div class="col-md-3 text-end"><button class="btn btn-secondary btn-sm" onclick="filterSales()">Filtrar</button> <button class="btn btn-outline-secondary btn-sm" onclick="showAllSales()">Mostrar tudo</button></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-body" style="max-height:320px;overflow:auto">
-            <table class="table table-sm table-striped">
-              <thead class="table-light"><tr><th>Data</th><th>Produto</th><th>Qtd</th><th>Preço</th><th>Total</th><th>Vendedor</th><th>Comissão</th></tr></thead>
-              <tbody id="salesTbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- DESPESAS -->
-      <div class="tab-pane fade" id="despesasTab">
-        <div class="card mb-3">
-          <div class="card-body">
-            <h5>Registrar Despesa</h5>
-            <form id="formDespesa" class="row g-2 align-items-end">
-              <div class="col-md-6">
-                <label class="form-label small">Descrição</label>
-                <input id="expenseDesc" class="form-control"/>
-              </div>
-              <div class="col-md-2">
-                <label class="form-label small">Valor (R$)</label>
-                <input id="expenseValue" type="number" step="0.01" class="form-control small-input"/>
-              </div>
-              <div class="col-md-2">
-                <label class="form-label small">Data</label>
-                <input id="expenseDate" type="date" class="form-control"/>
-              </div>
-              <div class="col-md-2 text-end">
-                <button class="btn btn-success btn-sm" type="submit">Adicionar</button>
-                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="exportCSV('expenses')">Exportar CSV</button>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <div class="card mb-3">
-          <div class="card-body">
-            <h6>Filtros de Despesas</h6>
-            <div class="row g-2 align-items-end">
-              <div class="col-md-4"><label class="form-label small">Data início</label><input id="expenseFilterStart" type="date" class="form-control"/></div>
-              <div class="col-md-4"><label class="form-label small">Data fim</label><input id="expenseFilterEnd" type="date" class="form-control"/></div>
-              <div class="col-md-4 text-end"><button class="btn btn-secondary btn-sm" onclick="filterExpenses()">Filtrar</button> <button class="btn btn-outline-secondary btn-sm" onclick="showAllExpenses()">Mostrar tudo</button></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-body" style="max-height:320px;overflow:auto">
-            <table class="table table-sm table-striped">
-              <thead class="table-light"><tr><th>Data</th><th>Descrição</th><th>Valor</th></tr></thead>
-              <tbody id="expensesTbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- RELATÓRIOS / BACKUP -->
-      <div class="tab-pane fade" id="relTab">
-        <div class="card mb-3">
-          <div class="card-body">
-            <h5>Relatório Rápido</h5>
-            <p><strong>Valor em estoque:</strong> R$ <span id="reportStock">0.00</span></p>
-            <p><strong>Vendas (total):</strong> R$ <span id="reportSales">0.00</span></p>
-            <p><strong>Despesas (total):</strong> R$ <span id="reportExpenses">0.00</span></p>
-            <p><strong>Comissões (total):</strong> R$ <span id="reportCommissions">0.00</span></p>
-            <hr/>
-            <p><strong>Lucro líquido:</strong> R$ <span id="reportNet">0.00</span></p>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-body">
-            <h5>Backup / Restaurar (Arquivo Único JSON)</h5>
-            <div class="row g-2">
-              <div class="col-md-4"><button class="btn btn-success" onclick="exportBackup()">Exportar Backup (.json)</button></div>
-              <div class="col-md-4"><input type="file" id="importBackupFile" accept=".json" style="display:none" onchange="importBackup(event)"><button class="btn btn-primary" onclick="document.getElementById('importBackupFile').click()">Importar Backup (.json)</button></div>
-              <div class="col-md-4"><button class="btn btn-outline-danger" onclick="resetAll()">Apagar tudo (reset)</button></div>
-            </div>
-            <small class="muted">Exporte antes de atualizar o sistema — o arquivo .json contém produtos, vendas e despesas prontos para importar.</small>
-          </div>
-        </div>
-      </div>
-
-    </div> <!-- tab-content -->
-  </div> <!-- container -->
-
-  <!-- libs -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-  /* ------------------ KEYS & STATE ------------------ */
-  const LS_PRODUCTS = 'sj_products_v2'
-  const LS_SALES = 'sj_sales_v2'
-  const LS_EXPENSES = 'sj_expenses_v2'
+  /* ===========================
+      CONFIGURAÇÃO DA API
+     =========================== */
+  
+  // 🛑 URL ATUALIZADA 🛑
+  const API_URL = "https://silacessorios.pythonanywhere.com";
 
-  let products = load(LS_PRODUCTS, [])
-  let sales = load(LS_SALES, [])
-  let expenses = load(LS_EXPENSES, [])
+  /* ===========================
+      ESTADO GLOBAL (EM MEMÓRIA)
+     =========================== */
+  // Não usamos mais localStorage. Os dados vêm da API e ficam em memória.
+  let products = []
+  let sales = []
+  let expenses = []
+  // A lista de usuários não é mais gerenciada pelo front-end
+  
+  let currentUser = null // { username, role }
 
-  /* ------------------ HELPERS ------------------ */
-  const money = v => Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
-  const uid = ()=> Date.now().toString(36) + Math.random().toString(36).slice(2,6)
-  const todayISO = ()=> new Date().toISOString().split('T')[0]
-  function load(key, fallback){ try{ return JSON.parse(localStorage.getItem(key)) || fallback }catch(e){return fallback} }
-  function save(key, val){ localStorage.setItem(key, JSON.stringify(val)) }
+  /* ===========================
+     HELPERS (Seus helpers originais)
+     =========================== */
+  function todayISO(){ return new Date().toISOString().split('T')[0] }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6) }
+  function money(v){ return Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) }
+  
+  // Funções de load/save do localStorage foram REMOVIDAS.
 
-  /* ------------------ PRODUCTS ------------------ */
-  document.getElementById('formProduto').addEventListener('submit', e=>{
+  /* ===========================
+     INICIALIZAÇÃO
+     =========================== */
+  // Mostra o login box ao carregar
+  document.getElementById('loginBox').style.display = 'block'
+  
+
+  /* ===========================
+     FLUXO DE LOGIN (MODIFICADO)
+     =========================== */
+  document.getElementById('loginForm').addEventListener('submit', async e => {
     e.preventDefault()
+    const user = document.getElementById('loginUser').value.trim()
+    const pass = document.getElementById('loginPass').value
+    const msgEl = document.getElementById('loginMessage')
+    msgEl.textContent = 'Autenticando...'
+
+    if(!user || !pass) {
+      msgEl.textContent = 'Preencha usuário e senha';
+      return;
+    }
+
+    try {
+        // 1. CHAMA A API DE LOGIN
+        const response = await fetch(`${API_URL}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: user, password: pass })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) { // Ex: 401 Credenciais inválidas
+            throw new Error(data.message || 'Erro de autenticação');
+        }
+
+        // 2. SUCESSO NO LOGIN
+        msgEl.textContent = '';
+        currentUser = { username: user, role: data.role }
+        await initAfterLogin(); // Chama a inicialização da aplicação
+
+    } catch (error) {
+        console.error('Falha no login:', error);
+        msgEl.textContent = `Erro: ${error.message}`;
+    }
+  })
+
+  document.getElementById('btnLogout').addEventListener('click', ()=>{
+    if(!confirm('Deseja sair?')) return
+    currentUser = null
+    // Reseta o estado
+    products = []
+    sales = []
+    expenses = []
+    // Mostra o login
+    document.getElementById('app').style.display = 'none'
+    document.getElementById('loginBox').style.display = 'block'
+    document.getElementById('loginForm').reset()
+    document.getElementById('loginMessage').textContent = ''
+  })
+
+  /* ===========================
+     SINCRONIZAÇÃO COM API (NOVO)
+     =========================== */
+
+  /**
+   * Carrega TODOS os dados (products, sales, expenses) da API
+   * e armazena nas variáveis globais.
+   */
+  async function loadAllDataFromServer() {
+      console.log('Buscando dados do servidor...');
+      try {
+          const [productsRes, salesRes, expensesRes] = await Promise.all([
+              fetch(`${API_URL}/api/products`),
+              fetch(`${API_URL}/api/sales`),
+              fetch(`${API_URL}/api/expenses`)
+          ]);
+
+          if (!productsRes.ok || !salesRes.ok || !expensesRes.ok) {
+              throw new Error('Falha ao buscar dados da API');
+          }
+
+          // Atualiza as variáveis globais
+          products = await productsRes.json();
+          sales = await salesRes.json();
+          expenses = await expensesRes.json();
+          
+          console.log('Dados carregados:', { products, sales, expenses });
+
+      } catch (error) {
+          console.error('Erro carregando dados:', error);
+          alert('ERRO FATAL: Não foi possível carregar os dados do servidor. Verifique sua conexão ou a URL da API.');
+      }
+  }
+
+  /**
+   * Salva TODOS os dados (products, sales, expenses) de volta na API
+   * usando a rota /api/import.
+   */
+  async function saveDatabase() {
+      console.log('Salvando dados no servidor...');
+      // AVISO: Apenas Admins podem salvar (vamos checar no back-end, mas é bom travar aqui)
+      if (currentUser.role !== 'admin') {
+          console.warn('Vendedores não podem salvar produtos/despesas (apenas vendas, o que é um ajuste a ser feito)');
+          // Por enquanto, a API /api/import substitui TUDO.
+          // Se um vendedor adicionar uma VENDA, precisamos enviar TUDO.
+      }
+
+      // A sua API /api/import espera o banco de dados completo
+      const payload = {
+          products: products,
+          sales: sales,
+          expenses: expenses
+          // A API não gerencia 'users', então não enviamos
+      };
+
+      try {
+          const response = await fetch(`${API_URL}/api/import`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+          });
+
+          if (!response.ok) {
+              throw new Error('Falha ao salvar dados no servidor');
+          }
+          
+          console.log('Dados salvos com sucesso!');
+          // Opcional: recarregar os dados para garantir consistência
+          // await loadAllDataFromServer();
+          
+      } catch (error) {
+          console.error('Erro ao salvar dados:', error);
+          alert('ERRO: Não foi possível salvar as alterações no servidor.');
+      }
+  }
+
+
+  /* ===========================
+     APÓS LOGIN - RENDERIZAR INTERFACE
+     =========================== */
+  async function initAfterLogin(){
+    document.getElementById('loginBox').style.display = 'none'
+    document.getElementById('app').style.display = 'block'
+    document.getElementById('currentUserLabel').innerText = currentUser.username
+    document.getElementById('roleLabel').innerText = '(' + currentUser.role + ')'
+    
+    // Elementos de Admin (Oculta Custo para Vendedor)
+    if(currentUser.role === 'admin'){
+      // document.getElementById('liUsers').style.display = 'block' // Desativado
+      document.getElementById('thCusto').style.display = ''
+    } else {
+      // document.getElementById('liUsers').style.display = 'none' // Desativado
+      document.getElementById('thCusto').style.display = 'none'
+      
+      // Vendedores não podem mexer em despesas ou produtos
+      document.getElementById('formProduto').querySelectorAll('input, button').forEach(el => el.disabled = true);
+      document.getElementById('formDespesa').querySelectorAll('input, button').forEach(el => el.disabled = true);
+    }
+    
+    // Define o campo vendedor
+    document.getElementById('saleSeller').value = currentUser.username
+    
+    // CARREGA OS DADOS DA API
+    await loadAllDataFromServer();
+    
+    // RENDERIZA TUDO com os dados carregados
+    renderProducts(); 
+    renderProductOptions(); 
+    renderSales(); 
+    renderExpenses(); 
+    // renderUsers(); // Desativado
+    computeReport();
+  }
+
+  /* ===========================
+     PRODUTOS (MODIFICADO)
+     =========================== */
+  document.getElementById('formProduto').addEventListener('submit', async e => {
+    e.preventDefault()
+    if(currentUser.role !== 'admin') return alert('Apenas admin pode criar/editar produtos')
+    
     const id = document.getElementById('produtoId').value
     const name = document.getElementById('produtoNome').value.trim()
     const code = document.getElementById('produtoCodigo').value.trim()
-    const qty = Number(document.getElementById('produtoQtd').value || 0)
-    const minQty = Number(document.getElementById('produtoMin').value || 0)
-    const cost = Number(document.getElementById('produtoCusto').value || 0)
-    const price = Number(document.getElementById('produtoPreco').value || 0)
+    const qty = Number(document.getElementById('produtoQtd').value||0)
+    const minQty = Number(document.getElementById('produtoMin').value||0)
+    const cost = Number(document.getElementById('produtoCusto').value||0)
+    const price = Number(document.getElementById('produtoPreco').value||0)
+    const exportFlag = document.getElementById('produtoExport').checked
+    
     if(!name) return alert('Nome obrigatório')
+    
     if(id){
+      // Editar produto existente no array
       const p = products.find(x=>x.id===id)
-      Object.assign(p, {name,code,qty,minQty,cost,price})
+      Object.assign(p,{name,code,qty,minQty,cost,price,exportFlag})
     } else {
-      products.push({id: uid(), name, code, qty, minQty, cost, price})
+      // Adicionar novo produto ao array
+      products.push({ id: uid(), name, code, qty, minQty, cost, price, exportFlag })
     }
-    save(LS_PRODUCTS, products)
-    clearProductForm()
-    renderProducts()
-    renderProductOptions()
-    computeReport()
+    
+    // SALVA O BANCO DE DADOS INTEIRO NA API
+    await saveDatabase(); 
+    
+    clearProductForm(); 
+    renderProducts(); 
+    renderProductOptions(); 
+    computeReport();
   })
-
+  
+  // Limpar formulário (lógica local, mantida)
   document.getElementById('limparProdutoBtn').addEventListener('click', clearProductForm)
-
   function clearProductForm(){
-    document.getElementById('produtoId').value = ''
-    document.getElementById('produtoNome').value = ''
-    document.getElementById('produtoCodigo').value = ''
-    document.getElementById('produtoQtd').value = 1
-    document.getElementById('produtoMin').value = 0
-    document.getElementById('produtoCusto').value = 0
-    document.getElementById('produtoPreco').value = 0
+    document.getElementById('produtoId').value=''
+    document.getElementById('produtoNome').value=''
+    document.getElementById('produtoCodigo').value=''
+    document.getElementById('produtoQtd').value=1
+    document.getElementById('produtoMin').value=0
+    document.getElementById('produtoCusto').value=0
+    document.getElementById('produtoPreco').value=0
+    document.getElementById('produtoExport').checked=false
   }
 
+  // Renderizar (lógica local, mantida)
+  // Esta função agora lê da variável global 'products'
   function renderProducts(){
-    const tbody = document.getElementById('productsTbody'); tbody.innerHTML = ''
+    const tbody = document.getElementById('productsTbody'); tbody.innerHTML=''
     const q = (document.getElementById('searchProduct').value||'').toLowerCase().trim()
-    products.filter(p => (p.name + (p.code||'')).toLowerCase().includes(q)).forEach(p=>{
+    
+    products.filter(p=> (p.name + (p.code||'')).toLowerCase().includes(q)).forEach(p=>{
       const low = Number(p.qty) <= Number(p.minQty||0)
       const tr = document.createElement('tr')
-      tr.innerHTML = `<td>${p.name}</td><td>${p.code||''}</td><td>${p.qty}</td><td>${p.minQty||0}</td><td>R$ ${money(p.price)}</td><td>R$ ${money(p.cost)}</td>
+      tr.innerHTML = `<td>${p.name}</td><td>${p.code||''}</td><td>${p.qty}</td><td>${p.minQty||0}</td><td>R$ ${money(p.price)}</td>
+        <td ${currentUser.role==='admin' ? '' : 'style="display:none"'}>R$ ${money(p.cost)}</td>
         <td class="text-end">
           ${low ? (p.qty==0 ? '<span class="badge-empty">ESGOTADO</span>' : '<span class="badge-low">BAIXO</span>') : ''}
-          <button class="btn btn-sm btn-outline-secondary ms-1" onclick="editProduct('${p.id}')">Editar</button>
-          <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteProduct('${p.id}')">Apagar</button>
+          ${currentUser.role==='admin' ? `<button class="btn btn-sm btn-outline-secondary ms-1" onclick="editProduct('${p.id}')">Editar</button>
+          <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteProduct('${p.id}')">Apagar</button>` : ''}
         </td>`
       tbody.appendChild(tr)
     })
   }
 
-  function editProduct(id){
+  // Editar (lógica local, mantida)
+  window.editProduct = function(id) { // Exposto globalmente
+    if(currentUser.role !== 'admin') return
     const p = products.find(x=>x.id===id); if(!p) return
     document.getElementById('produtoId').value = p.id
     document.getElementById('produtoNome').value = p.name
@@ -310,104 +336,146 @@
     document.getElementById('produtoMin').value = p.minQty||0
     document.getElementById('produtoCusto').value = p.cost
     document.getElementById('produtoPreco').value = p.price
+    document.getElementById('produtoExport').checked = !!p.exportFlag
     window.scrollTo({top:0,behavior:'smooth'})
   }
 
-  function deleteProduct(id){
+  // Deletar (MODIFICADO)
+  window.deleteProduct = async function(id) { // Exposto globalmente
+    if(currentUser.role !== 'admin') return
     if(!confirm('Apagar produto?')) return
+    
+    // Remove do array local
     products = products.filter(p=>p.id!==id)
-    save(LS_PRODUCTS, products)
-    renderProducts(); renderProductOptions(); computeReport()
+    
+    // SALVA O BD NA API
+    await saveDatabase();
+    
+    renderProducts(); 
+    renderProductOptions(); 
+    computeReport();
   }
 
-  /* ------------------ SALES ------------------ */
+  /* ===========================
+     VENDAS (MODIFICADO)
+     =========================== */
+  
+  // Renderizar Opções (lógica local, mantida)
   function renderProductOptions(){
-    const sel = document.getElementById('saleProduct'); sel.innerHTML = ''
-    products.forEach(p => {
-      const opt = document.createElement('option'); opt.value = p.id; opt.text = `${p.name} — Q:${p.qty}`
+    const sel = document.getElementById('saleProduct'); sel.innerHTML=''
+    products.forEach(p=>{
+      const opt = document.createElement('option'); opt.value=p.id; opt.text = `${p.name} — Q:${p.qty}`
       sel.appendChild(opt)
     })
-    if(products.length) {
-      // preset price for first product
-      const first = products[0]
-      document.getElementById('salePrice').value = first.price || 0
+    // preset price if seller selects nothing
+    const selVal = document.getElementById('saleProduct').value
+    if(selVal){
+      const p = products.find(x=>x.id===selVal)
+      if(p) document.getElementById('salePrice').value = p.price || 0
+    } else if(products.length){
+      document.getElementById('saleProduct').value = products[0].id
+      document.getElementById('salePrice').value = products[0].price || 0
     } else {
       document.getElementById('salePrice').value = 0
     }
   }
-  renderProductOptions()
 
+  // Atualizar Preço (lógica local, mantida)
   document.getElementById('saleProduct').addEventListener('change', ()=>{
     const id = document.getElementById('saleProduct').value
     const p = products.find(x=>x.id===id)
     if(p) document.getElementById('salePrice').value = p.price || 0
   })
 
-  document.getElementById('formVenda').addEventListener('submit', e=>{
+  // SUBMIT DO FORMULÁRIO DE VENDA (MODIFICADO)
+  document.getElementById('formVenda').addEventListener('submit', async e => {
     e.preventDefault()
     const productId = document.getElementById('saleProduct').value
     const qty = Number(document.getElementById('saleQty').value||0)
     const price = Number(document.getElementById('salePrice').value||0)
-    const seller = document.getElementById('saleSeller').value.trim() || '—'
+    const seller = currentUser.username
     const pct = Number(document.getElementById('saleCommissionPct').value||0)
-
+    
     if(!productId || qty<=0) return alert('Selecione produto e quantidade válida')
-
+    
     const p = products.find(x=>x.id===productId)
     if(!p) return alert('Produto não encontrado')
     if(qty > p.qty) return alert('Quantidade maior que estoque')
-
+    
     const total = qty * price
     const commission = total * (pct/100)
     const date = todayISO()
+    
+    // Adiciona à lista de vendas local
     const sale = { id: uid(), date, productId, productName: p.name, qty, unit: price, total, seller, commission, cost: (p.cost||0)*qty, commissionPct: pct }
-
     sales.push(sale)
+    
+    // Atualiza o produto local
     p.qty = p.qty - qty
-
-    save(LS_SALES, sales)
-    save(LS_PRODUCTS, products)
-
-    renderProducts(); renderProductOptions(); renderSales(); computeReport()
+    
+    // SALVA TUDO NA API (vendas e produtos atualizados)
+    await saveDatabase();
+    
+    renderProducts(); 
+    renderProductOptions(); 
+    renderSales(); 
+    computeReport();
+    
     document.getElementById('saleQty').value = 1
     alert('Venda registrada: R$ ' + money(total))
   })
 
+  // Renderizar/Filtrar Vendas (lógica local, mantida)
+  // Essas funções leem da variável global 'sales'
   function renderSales(list = sales.slice()){
     const tbody = document.getElementById('salesTbody'); tbody.innerHTML = ''
-    list.slice().reverse().forEach(s=>{
+    const showList = currentUser.role==='vendedor' ? (list.filter(s=>s.seller===currentUser.username)) : list
+    showList.slice().reverse().forEach(s=>{
       const tr = document.createElement('tr')
       tr.innerHTML = `<td>${s.date}</td><td>${s.productName}</td><td>${s.qty}</td><td>R$ ${money(s.unit)}</td><td>R$ ${money(s.total)}</td><td>${s.seller}</td><td>R$ ${money(s.commission)}</td>`
       tbody.appendChild(tr)
     })
   }
-
-  function filterSales(){
+  window.filterSales = function() { // Exposto globalmente
     const start = document.getElementById('saleFilterStart').value
     const end = document.getElementById('saleFilterEnd').value
-    const seller = (document.getElementById('saleFilterSeller').value || '').toLowerCase().trim()
+    const seller = (document.getElementById('saleFilterSeller').value||'').toLowerCase().trim()
     let filtered = sales.slice()
     if(start) filtered = filtered.filter(s=> s.date >= start)
     if(end) filtered = filtered.filter(s=> s.date <= end)
     if(seller) filtered = filtered.filter(s=> (s.seller||'').toLowerCase().includes(seller))
+    if(currentUser.role === 'vendedor') filtered = filtered.filter(s=> s.seller === currentUser.username)
     renderSales(filtered)
   }
-  function showAllSales(){ renderSales(sales) }
+  window.showAllSales = function() { renderSales(sales) } // Exposto globalmente
 
-  /* ------------------ EXPENSES ------------------ */
-  document.getElementById('formDespesa').addEventListener('submit', e=>{
+  /* ===========================
+     DESPESAS (MODIFICADO)
+     =========================== */
+  document.getElementById('formDespesa').addEventListener('submit', async e => {
     e.preventDefault()
+    if(currentUser.role !== 'admin') return alert('Apenas admin pode registrar despesas')
+    
     const desc = document.getElementById('expenseDesc').value.trim()
     const value = Number(document.getElementById('expenseValue').value||0)
     const date = document.getElementById('expenseDate').value || todayISO()
+    
     if(!desc || value<=0) return alert('Descrição e valor obrigatórios')
+    
+    // Adiciona à lista local
     const ex = { id: uid(), date, desc, value }
     expenses.push(ex)
-    save(LS_EXPENSES, expenses)
-    renderExpenses(); computeReport()
-    document.getElementById('expenseDesc').value = ''; document.getElementById('expenseValue').value = ''
+    
+    // SALVA O BD NA API
+    await saveDatabase();
+    
+    renderExpenses(); 
+    computeReport();
+    document.getElementById('expenseDesc').value=''; document.getElementById('expenseValue').value=''
   })
 
+  // Renderizar/Filtrar Despesas (lógica local, mantida)
+  // Leem da variável global 'expenses'
   function renderExpenses(list = expenses.slice()){
     const tbody = document.getElementById('expensesTbody'); tbody.innerHTML = ''
     list.slice().reverse().forEach(e=>{
@@ -416,8 +484,7 @@
       tbody.appendChild(tr)
     })
   }
-
-  function filterExpenses(){
+  window.filterExpenses = function() { // Exposto globalmente
     const start = document.getElementById('expenseFilterStart').value
     const end = document.getElementById('expenseFilterEnd').value
     let filtered = expenses.slice()
@@ -425,86 +492,76 @@
     if(end) filtered = filtered.filter(d=> d.date <= end)
     renderExpenses(filtered)
   }
-  function showAllExpenses(){ renderExpenses(expenses) }
+  window.showAllExpenses = function() { renderExpenses(expenses) } // Exposto globalmente
 
-  /* ------------------ EXPORT / IMPORT CSV (optional) ------------------ */
-  function escapeCsv(s){ return `"${String(s).replace(/"/g,'""')}"` }
-  function exportCSV(type){
-    let csv = ''
-    if(type === 'products'){
-      csv += 'id,name,code,qty,min,cost,price\n'
-      products.forEach(p=> csv += `${escapeCsv(p.id)},${escapeCsv(p.name)},${escapeCsv(p.code)},${p.qty},${p.minQty||0},${p.cost},${p.price}\n`)
-    } else if(type === 'sales'){
-      csv += 'id,date,productId,productName,qty,unit,total,seller,commission,commissionPct,cost\n'
-      sales.forEach(s=> csv += `${escapeCsv(s.id)},${s.date},${escapeCsv(s.productId)},${escapeCsv(s.productName)},${s.qty},${s.unit},${s.total},${escapeCsv(s.seller)},${s.commission},${s.commissionPct},${s.cost}\n`)
-    } else if(type === 'expenses'){
-      csv += 'id,date,desc,value\n'
-      expenses.forEach(e=> csv += `${escapeCsv(e.id)},${e.date},${escapeCsv(e.desc)},${e.value}\n`)
-    }
-    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `sj_${type}.csv`; a.click(); URL.revokeObjectURL(a.href)
-  }
+  /* ===========================
+     USUÁRIOS (DESATIVADO)
+     =========================== */
+  // Sua API não tem rotas para /api/users (GET, POST, DELETE)
+  // Por isso, toda a lógica de gerenciamento de usuários foi desativada.
+  // O login (acima) é a única interação com usuários.
+  
+  /*
+  async function renderUsers(){ ... }
+  document.getElementById('formUser').addEventListener('submit', ... )
+  async function promptChangePass(username){ ... }
+  function removeUser(username){ ... }
+  */
 
-  /* ------------------ BACKUP ÚNICO (JSON) ------------------ */
-  function exportBackup(){
-    const payload = { products, sales, expenses, exportedAt: new Date().toISOString() }
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `sj_backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(a.href)
-  }
-
-  function importBackup(evt){
-    const file = evt.target.files[0]; if(!file) return
-    const reader = new FileReader()
-    reader.onload = e=>{
-      try{
-        const data = JSON.parse(e.target.result)
-        if(data.products && data.sales && data.expenses){
-          products = data.products
-          sales = data.sales
-          expenses = data.expenses
-          save(LS_PRODUCTS, products); save(LS_SALES, sales); save(LS_EXPENSES, expenses)
-          renderProducts(); renderProductOptions(); renderSales(); renderExpenses(); computeReport()
-          alert('Backup importado com sucesso!')
-        } else {
-          alert('Arquivo inválido: não contém products/sales/expenses')
-        }
-      }catch(err){ alert('Erro ao ler arquivo: ' + err.message) }
-    }
-    reader.readAsText(file)
-    // reset input
-    evt.target.value = ''
-  }
-
-  /* ------------------ RESET ------------------ */
-  function resetAll(){
-    if(!confirm('Apagar TODOS os dados locais?')) return
-    localStorage.removeItem(LS_PRODUCTS); localStorage.removeItem(LS_SALES); localStorage.removeItem(LS_EXPENSES)
-    products=[]; sales=[]; expenses=[]
-    renderProducts(); renderProductOptions(); renderSales(); renderExpenses(); computeReport()
-  }
-
-  /* ------------------ REPORTS ------------------ */
+  /* ===========================
+     RELATÓRIOS (Lógica local mantida)
+     =========================== */
+  // Esta função agora usa os arrays globais
   function computeReport(){
-    const stockVal = products.reduce((s,p)=> s + (Number(p.qty||0) * Number(p.cost||0)), 0)
-    const totalSales = sales.reduce((s,x)=> s + Number(x.total||0), 0)
-    const totalExpenses = expenses.reduce((s,x)=> s + Number(x.value||0), 0)
-    const totalCommissions = sales.reduce((s,x)=> s + Number(x.commission||0), 0)
-    const costSold = sales.reduce((s,x)=> s + Number(x.cost||0), 0)
-    const grossProfit = totalSales - costSold
-    const netProfit = grossProfit - totalExpenses - totalCommissions
+    const stock = products.reduce((sum,p) => sum + ((p.cost||0) * (p.qty||0)), 0)
+    const salesTotal = sales.reduce((sum,s) => sum + (s.total||0), 0)
+    const expensesTotal = expenses.reduce((sum,e) => sum + (e.value||0), 0)
+    const commTotal = sales.reduce((sum,s) => sum + (s.commission||0), 0)
+    // Lucro = Vendas - Custo dos Produtos Vendidos - Despesas - Comissões
+    const salesCost = sales.reduce((sum,s) => sum + (s.cost||0), 0)
+    const net = salesTotal - salesCost - expensesTotal - commTotal
 
-    document.getElementById('reportStock').innerText = money(stockVal)
-    document.getElementById('reportSales').innerText = money(totalSales)
-    document.getElementById('reportExpenses').innerText = money(totalExpenses)
-    document.getElementById('reportCommissions').innerText = money(totalCommissions)
-    document.getElementById('reportNet').innerText = money(netProfit)
+    document.getElementById('reportStock').innerText = money(stock)
+    document.getElementById('reportSales').innerText = money(salesTotal)
+    document.getElementById('reportExpenses').innerText = money(expensesTotal)
+    document.getElementById('reportCommissions').innerText = money(commTotal)
+    document.getElementById('reportNet').innerText = money(net)
   }
 
-  /* ------------------ BOOTSTRAP / INIT ------------------ */
-  // initial render
-  renderProducts(); renderProductOptions(); renderSales(); renderExpenses(); computeReport()
+  /* ===========================
+     EXPORT / IMPORT (MODIFICADO)
+     =========================== */
+  
+  // Exportar CSV (lógica local mantida)
+  window.escapeCsv = function(s){ if(s==null) return '""'; return '"' + String(s).replace(/"/g,'""') + '"' }
+  window.exportCSV = function(type){
+    if(type==='products'){
+      const rows = products.filter(p=>p.exportFlag)
+      if(rows.length===0) return alert('Nenhum produto marcado para exportar.')
+      let csv = 'name,code,price\n'
+      rows.forEach(p=> csv += `${escapeCsv(p.name)},${escapeCsv(p.code)},${p.price}\n`)
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `produtos_exportados.csv`; a.click(); URL.revokeObjectURL(a.href)
+    } else if(type==='sales'){
+      let rows = sales.slice()
+      if(currentUser.role==='vendedor') rows = rows.filter(s=> s.seller === currentUser.username)
+      if(rows.length===0) return alert('Nenhuma venda para exportar.')
+      let csv = 'date,productName,qty,unit,total,seller,commission\n'
+      rows.forEach(s=> csv += `${s.date},${escapeCsv(s.productName)},${s.qty},${s.unit},${s.total},${escapeCsv(s.seller)},${s.commission}\n`)
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `vendas_${currentUser.username}.csv`; a.click(); URL.revokeObjectURL(a.href)
+    } else if(type==='expenses'){
+      if(currentUser.role!=='admin') return alert('Apenas admin pode exportar despesas')
+      if(expenses.length===0) return alert('Nenhuma despesa registrada')
+      let csv = 'date,desc,value\n'
+      expenses.forEach(e=> csv += `${e.date},${escapeCsv(e.desc)},${e.value}\n`)
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `despesas.csv`; a.click(); URL.revokeObjectURL(a.href)
+    }
+  }
 
-  // attach import backup handler
-  document.getElementById('importBackupFile').addEventListener('change', importBackup)
+  // Funções de Backup/Import JSON (REMOVIDAS)
+  // Isso agora é feito automaticamente pelo servidor.
+  // window.exportBackup = function(){ ... }
+  // window.importBackup = function(event){ ... }
+
   </script>
-</body>
+  </body>
 </html>
